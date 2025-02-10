@@ -18,8 +18,8 @@ async def start(bot, message):
         InlineKeyboardButton("ʜᴇʟᴘ", callback_data="misc_help"),
         InlineKeyboardButton("ᴀʙᴏᴜᴛ", callback_data="misc_about")
     ],[
-        InlineKeyboardButton("🤖 ᴜᴘᴅᴀᴛᴇ", url="https:// "),
-        InlineKeyboardButton("🔍 ɢʀᴏᴜᴘ", url="https:// ")
+        InlineKeyboardButton("🤖 ᴜᴘᴅᴀᴛᴇ", url="https://t.me/Dragonfirepro"),
+        InlineKeyboardButton("🔍 ɢʀᴏᴜᴘ", url="https://t.me/MagicOfGroup")
     ]]
     await message.reply(text=script.START.format(message.from_user.mention),
                         disable_web_page_preview=True,
@@ -66,8 +66,8 @@ async def misc(bot, update):
            InlineKeyboardButton("ʜᴇʟᴘ", callback_data="misc_help"),
            InlineKeyboardButton("ᴀʙᴏᴜᴛ", callback_data="misc_about")
        ],[
-           InlineKeyboardButton("🤖 ᴜᴘᴅᴀᴛᴇ", url="https:// "),
-           InlineKeyboardButton("🔍 ɢʀᴏᴜᴘ", url="https:// ")
+           InlineKeyboardButton("🤖 ᴜᴘᴅᴀᴛᴇ", url="https://t.me/Dragonfirepro"),
+           InlineKeyboardButton("🔍 ɢʀᴏᴜᴘ", url="https://t.me/MagicOfGroup")
        ]]
        await update.message.edit(text=script.START.format(update.from_user.mention),
                                  disable_web_page_preview=True,
