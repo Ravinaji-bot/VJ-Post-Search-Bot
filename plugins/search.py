@@ -14,7 +14,7 @@ async def send_message_in_chunks(client, chat_id, text):
     max_length = 4096  # Maximum length of a message
     for i in range(0, len(text), max_length):
         msg = await client.send_message(chat_id=chat_id, text=text[i:i+max_length])
-        asyncio.create_task(delete_after_delay(msg, 1800))
+        asyncio.create_task(delete_after_delay(msg, 60))
 
 
 
