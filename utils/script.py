@@ -3,9 +3,9 @@
 # Ask Doubt on telegram @KingVJ01
 
 class script(object):
-    START_TXT = """<b><blockquote>ʜᴇʟʟᴏ Dear {} ❣️
+    START = """<b><blockquote>ʜᴇʟʟᴏ Dear {} ❣️
    
-<b>ɪ ᴀᴍ Pro ᴘᴏsᴛ sᴇᴀʀᴄʜ ʙᴏᴛ.
+<b>ɪ ᴀᴍ Pro Fast ᴘᴏsᴛ sᴇᴀʀᴄʜ ʙᴏᴛ.
 
 Warning ⚠️ 
 
@@ -13,7 +13,7 @@ Warning ⚠️
 
 First share this bot with your 5 friends and then only send a message in the group, only then the bot will work properly...
 
-Admin Contact @CM_Developer</b></blockquote>"""
+Admin Contact @CM_Developer_bot</b></blockquote>"""
 
     HELP = """<b>💢 ʜᴏᴡ ᴛᴏ ᴜsᴇ ᴍᴇ ɪɴ ᴀ ɢʀᴏᴜᴘ
 
