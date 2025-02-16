@@ -3,9 +3,10 @@
 # Ask Doubt on telegram @KingVJ01
 
 class script(object):
-    START = """<b><blockquote>ʜᴇʟʟᴏ Dear {} Ji🤗
+    START = """<b><blockquote>ʜᴇʟʟᴏ Dear {} Ji 🤗
    
-<b>ɪ ᴀᴍ  ɪ ᴀᴍ 𝗣𝗼𝘀𝘁 𝗙𝗶𝗻𝗱𝗲𝗿𝗣𝗿𝗼 𝗕𝗼𝘁 ʙᴇsᴛ ᴄʜᴀɴɴᴇʟ ʟɪɴᴋ sᴇᴀʀᴄʜ ʙᴏᴛ ! 😊
+<b> 😊 ɪ ᴀᴍ  ɪ ᴀᴍ 𝗣𝗼𝘀𝘁 𝗙𝗶𝗻𝗱𝗲𝗿𝗣𝗿𝗼 𝗕𝗼𝘁 ʙᴇsᴛ ᴄʜᴀɴɴᴇʟ ʟɪɴᴋ sᴇᴀʀᴄʜ ʙᴏᴛ !
+
 ɪ ᴡɪʟʟ ғɪʟᴛᴇʀ ʏᴏᴜʀ ᴄʜᴀɴɴᴇʟ ᴘᴏsᴛs ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴀɴᴅ sᴇɴᴅ ɪᴛ ɪɴ ʏᴏᴜʀ ɢʀᴏᴜᴘ ᴄʜᴀᴛ ᴡʜᴇɴ sᴏᴍᴇᴏɴᴇ sᴇᴀʀᴄʜ ɪᴛ.
 
 Admin Contact @CM_Developer_bot</b></blockquote>"""
