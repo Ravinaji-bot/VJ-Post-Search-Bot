@@ -1,84 +1,68 @@
+# Updated misc.py - Help & Start Logic
 # Don't Remove Credit Tg - @VJ_Botz
-# Subscribe YouTube Channel For Amaging Bot https://youtube.com/@Tech_VJ
-# Ask Doubt on telegram @KingVJ01
 
+from info import *
 from utils import *
 from pyrogram import Client, filters
-from plugins.generate import database 
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton 
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-@Client.on_message(filters.command("start") & ~filters.channel)
+@Client.on_message(filters.command("start") & filters.private)
 async def start(bot, message):
-    database.insert_one({"chat_id": message.from_user.id})
-    username = (await bot.get_me()).username
-    await add_user(message.from_user.id, message.from_user.first_name)
-    button = [[
-        InlineKeyboardButton('➕ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ ➕', url=f'http://t.me/{username}?startgroup=true')
-    ],[
-        InlineKeyboardButton("ʜᴇʟᴘ", callback_data="misc_help"),
-        InlineKeyboardButton("ᴀʙᴏᴜᴛ", callback_data="misc_about")
-    ],[
-        InlineKeyboardButton("🤖 ᴜᴘᴅᴀᴛᴇ", url="https://t.me/Dragonfirepro"),
-        InlineKeyboardButton("🔍 Main ɢʀᴏᴜᴘ", url="https://t.me/MagicOfGroup")
-    ]]
-    await message.reply(text=script.START.format(message.from_user.mention),
-                        disable_web_page_preview=True,
-                        reply_markup=InlineKeyboardMarkup(button))
- 
-@Client.on_message(filters.command("help"))
-async def help(bot, message):
-    await message.reply(text=script.HELP, 
-                        disable_web_page_preview=True)
+    # Add user to database if not exists
+    await add_user(message.from_user.id)
+    
+    buttons = [
+        [
+            InlineKeyboardButton("➕ Add Me To Your Group", url=f"http://t.me/{bot.me.username}?startgroup=true")
+        ],
+        [
+            InlineKeyboardButton("🛠 Help", callback_data="help"),
+            InlineKeyboardButton("ℹ️ About", callback_data="about")
+        ],
+        [
+            InlineKeyboardButton("🎬 Join Channel", url="https://t.me/VJ_Botz")
+        ]
+    ]
+    
+    await message.reply_photo(
+        photo="https://graph.org/file/c361a803c7b70fc50d435.jpg", # Aap apni image URL yahan dal sakte hain
+        caption=f"<b>👋 Hello {message.from_user.mention}!\n\nMain ek Advance Telegram Post Search Bot hoon.\n\nMujhe apne group mein add karein aur apne channels connect karke search feature ka maza lein.</b>",
+        reply_markup=InlineKeyboardMarkup(buttons)
+    )
 
-@Client.on_message(filters.command("about"))
-async def about(bot, message):
-    await message.reply(text=script.ABOUT.format((await bot.get_me()).mention), 
-                        disable_web_page_preview=True)
+@Client.on_callback_query(filters.regex("help"))
+async def help_cb(bot, query):
+    text = (
+        "<b>📖 Bot Kaise Use Karein?</b>\n\n"
+        "1. Bot ko apne Group mein <b>Admin</b> banayein.\n"
+        "2. Bot ko apne Channel mein bhi <b>Admin</b> banayein.\n"
+        "3. Group mein command dein: `/connect -100xxxxxxxx` (Channel ID).\n"
+        "4. Bas! Ab group mein movie ya post ka naam likhein, main dhundh nikalunga."
+    )
+    buttons = [[InlineKeyboardButton("🔙 Back", callback_data="start_back")]]
+    await query.message.edit(text, reply_markup=InlineKeyboardMarkup(buttons))
 
-@Client.on_message(filters.command("stats"))
-async def stats(bot, message):
-    g_count, g_list = await get_groups()
-    u_count, u_list = await get_users()
-    await message.reply(script.STATS.format(u_count, g_count))
+@Client.on_callback_query(filters.regex("about"))
+async def about_cb(bot, query):
+    text = (
+        "<b>🤖 Bot Info:</b>\n"
+        "• <b>Name:</b> Post Search Bot\n"
+        "• <b>Language:</b> Python 3\n"
+        "• <b>Library:</b> Pyrogram\n"
+        "• <b>Channel:</b> @VJ_Botz"
+    )
+    buttons = [[InlineKeyboardButton("🔙 Back", callback_data="start_back")]]
+    await query.message.edit(text, reply_markup=InlineKeyboardMarkup(buttons))
 
-@Client.on_message(filters.command("id"))
-async def id(bot, message):
-    text = f"Current Chat ID: `{message.chat.id}`\n"
-    if message.from_user:
-       text += f"Your ID: `{message.from_user.id}`\n"
-    if message.reply_to_message:
-       if message.reply_to_message.from_user:
-          text += f"Replied User ID: `{message.reply_to_message.from_user.id}`\n"
-       if message.reply_to_message.forward_from:
-          text += f"Replied Message Forward from User ID: `{message.reply_to_message.forward_from.id}`\n"
-       if message.reply_to_message.forward_from_chat:
-          text += f"Replied Message Forward from Chat ID: `{message.reply_to_message.forward_from_chat.id}\n`"
-    await message.reply(text)
-
-@Client.on_callback_query(filters.regex(r"^misc"))
-async def misc(bot, update):
-    data = update.data.split("_")[-1]
-    if data=="home":
-       username = (await bot.get_me()).username
-       button = [[
-           InlineKeyboardButton('➕ ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ ➕', url=f'http://t.me/{username}?startgroup=true')
-       ],[
-           InlineKeyboardButton("ʜᴇʟᴘ", callback_data="misc_help"),
-           InlineKeyboardButton("ᴀʙᴏᴜᴛ", callback_data="misc_about")
-       ],[
-           InlineKeyboardButton("🤖 ᴜᴘᴅᴀᴛᴇ", url="https://t.me/Dragonfirepro"),
-           InlineKeyboardButton("🔍 Main ɢʀᴏᴜᴘ", url="https://t.me/MagicOfGroup")
-       ]]
-       await update.message.edit(text=script.START.format(update.from_user.mention),
-                                 disable_web_page_preview=True,
-                                 reply_markup=InlineKeyboardMarkup(button))
-    elif data=="help":
-       await update.message.edit(text=script.HELP, 
-                                 disable_web_page_preview=True,
-                                 reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="misc_home")]])) 
-
-    elif data=="about":
-        await update.message.edit(text=script.ABOUT.format((await bot.get_me()).mention), 
-                                  disable_web_page_preview=True,
-                                  reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="misc_home")]]))
-         
+@Client.on_callback_query(filters.regex("start_back"))
+async def start_back(bot, query):
+    # Wapas start menu par le jane ke liye
+    buttons = [
+        [InlineKeyboardButton("➕ Add Me To Your Group", url=f"http://t.me/{bot.me.username}?startgroup=true")],
+        [InlineKeyboardButton("🛠 Help", callback_data="help"), InlineKeyboardButton("ℹ️ About", callback_data="about")]
+    ]
+    await query.message.edit_caption(
+        caption=f"<b>👋 Welcome Back {query.from_user.mention}!</b>",
+        reply_markup=InlineKeyboardMarkup(buttons)
+    )
+    
