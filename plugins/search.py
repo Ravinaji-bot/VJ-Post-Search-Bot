@@ -1,7 +1,3 @@
-# Don't Remove Credit Tg - @VJ_Botz
-# Subscribe YouTube Channel For Amazing Bot https://youtube.com/@Tech_VJ
-# Ask Doubt on telegram @KingVJ01
-
 import asyncio
 from info import *
 from utils import *
@@ -9,14 +5,21 @@ from time import time
 from plugins.generate import database
 from pyrogram import Client, filters 
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message 
+from pyrogram.errors import FloodWait
 
-async def send_message_in_chunks(client, chat_id, text):
-    max_length = 4096  # Maximum length of a message
-    for i in range(0, len(text), max_length):
-        msg = await client.send_message(chat_id=chat_id, text=text[i:i+max_length])
-        asyncio.create_task(delete_after_delay(msg, 60))
+# Global variable to store session to avoid multiple connects
+USER_BOT = None
 
-
+async def get_user_bot():
+    global USER_BOT
+    if USER_BOT:
+        return USER_BOT
+    vj = database.find_one({"chat_id": ADMIN})
+    if vj:
+        USER_BOT = Client("post_search", session_string=vj['session'], api_hash=API_HASH, api_id=API_ID)
+        await USER_BOT.start()
+        return USER_BOT
+    return None
 
 async def delete_after_delay(message: Message, delay):
     await asyncio.sleep(delay)
@@ -27,94 +30,101 @@ async def delete_after_delay(message: Message, delay):
 
 @Client.on_message(filters.text & filters.group & filters.incoming & ~filters.command(["verify", "connect", "id"]))
 async def search(bot, message):
-    vj = database.find_one({"chat_id": ADMIN})
-    if vj == None:
-        return await message.reply("**Contact Admin Then Say To Login In Bot.**")
-    User = Client("post_search", session_string=vj['session'], api_hash=API_HASH, api_id=API_ID)
-    await User.connect()
-    f_sub = await force_sub(bot, message)
-    if f_sub==False:
-       return     
-    channels = (await get_group(message.chat.id))["channels"]
-    if bool(channels)==False:
-       return     
     if message.text.startswith("/"):
-       return    
-    query   = message.text 
-    head    = f"<u>🏴‍☠️ Your Links is Ready {message.from_user.mention} 👇\n\n🔐 Any Questions Help </u> <b><I>@CM_Developer_bot</I></b>\n\n"
-    results = ""
-    try:
-       for channel in channels:
-           async for msg in User.search_messages(chat_id=channel, query=query):
-               name = (msg.text or msg.caption).split("\n")[0]
-               if name in results:
-                  continue 
-               results += f"<b><I>🎬 {name}\n☞ {msg.link}</I></b>\n\n"                                                      
-       if bool(results)==False:
-          movies = await search_imdb(query)
-          buttons = []
-          for movie in movies: 
-              buttons.append([InlineKeyboardButton(movie['title'], callback_data=f"recheck_{movie['id']}")])
-          msg = await message.reply_photo(photo="https://graph.org/file/c361a803c7b70fc50d435.jpg",
-                                          caption="<b><I>🔻 I Couldn't find anything related to Your Query😕.\n🔺 Did you mean any of these?</I></b>", 
-                                          reply_markup=InlineKeyboardMarkup(buttons))
-       else:
-          await send_message_in_chunks(bot, message.chat.id, head+results)
-    except:
-       pass
-       
+        return
+        
+    f_sub = await force_sub(bot, message)
+    if not f_sub:
+        return     
 
+    group_data = await get_group(message.chat.id)
+    channels = group_data.get("channels", [])
+    if not channels:
+        return     
+
+    user_bot = await get_user_bot()
+    if not user_bot:
+        return await message.reply("<b>⚠️ Admin Session Not Found! Please Login first.</b>")
+
+    query = message.text 
+    m = await message.reply("🔍 **Searching your request... Please wait.**")
+    
+    results = ""
+    found_names = set() # To avoid duplicates efficiently
+    
+    try:
+        # Searching across all channels in parallel for speed
+        tasks = []
+        for channel in channels:
+            tasks.append(user_bot.search_messages(chat_id=channel, query=query))
+        
+        for task in tasks:
+            async for msg in task:
+                text = msg.text or msg.caption
+                if not text: continue
+                name = text.split("\n")[0]
+                if name not in found_names:
+                    found_names.add(name)
+                    results += f"<b>🎬 {name}</b>\n🔗 [Get File From Here]({msg.link})\n\n"
+
+        if not results:
+            await m.delete()
+            movies = await search_imdb(query)
+            buttons = [[InlineKeyboardButton(movie['title'], callback_data=f"recheck_{movie['id']}")] for movie in movies]
+            return await message.reply_photo(
+                photo="https://graph.org/file/c361a803c7b70fc50d435.jpg",
+                caption="<b>❌ Result Not Found!\n\n💡 Did you mean any of these? Select below:</b>", 
+                reply_markup=InlineKeyboardMarkup(buttons)
+            )
+        
+        await m.delete()
+        head = f"<b>👋 Hey {message.from_user.mention},\n✅ Your Results are Ready:</b>\n\n"
+        footer = "\n<b>⚡ Powered By @Gajab_Facts_Gujarati</b>" # Aapka channel name
+        
+        final_text = head + results + footer
+        
+        # Split into chunks if text is too long
+        for i in range(0, len(final_text), 4096):
+            sent_msg = await bot.send_message(chat_id=message.chat.id, text=final_text[i:i+4096], disable_web_page_preview=True)
+            asyncio.create_task(delete_after_delay(sent_msg, 300)) # Delete after 5 mins for clean group
+
+    except Exception as e:
+        print(f"Error: {e}")
+        await m.edit("<b>❌ Something went wrong while searching.</b>")
 
 @Client.on_callback_query(filters.regex(r"^recheck"))
 async def recheck(bot, update):
-    vj = database.find_one({"chat_id": ADMIN})
-    User = Client("post_search", session_string=vj['session'], api_hash=API_HASH, api_id=API_ID)
-    if vj == None:
-        return await update.message.edit("**Contact Admin Then Say To Login In Bot.**")
-    await User.connect()
-    clicked = update.from_user.id
-    try:      
-       typed = update.message.reply_to_message.from_user.id
-    except:
-       return await update.message.delete(2)       
-    if clicked != typed:
-       return await update.answer("That's not for you! 👀", show_alert=True)
+    user_bot = await get_user_bot()
+    if not user_bot:
+        return await update.answer("Admin not logged in!", show_alert=True)
 
-    m=await update.message.edit("**Searching..💥**")
-    id      = update.data.split("_")[-1]
-    query   = await search_imdb(id)
-    channels = (await get_group(update.message.chat.id))["channels"]
-    head    = "<u>⭕ I Have Searched Movie With Wrong Spelling But Take care next time 👇\n\n💢 Powered By </u> <b><I>CM_Developer_bot</I></b>\n\n"
-    results = ""
+    # Security Check
     try:
-       for channel in channels:
-           async for msg in User.search_messages(chat_id=channel, query=query):
-               name = (msg.text or msg.caption).split("\n")[0]
-               if name in results:
-                  continue 
-               results += f"<b><I>🎬🍿 {name}</I></b>\n\n☞ {msg.link}</I></b>\n\n"
-       if bool(results)==False:          
-          return await update.message.edit("🔺 Still no results found! Please Request To Group Admin 🔻", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🎯 Request To Admin 🎯", callback_data=f"request_{id}")]]))
-       await send_message_in_chunks(bot, update.message.chat.id, head+results)
-    except Exception as e:
-       await update.message.edit(f"❌ Error: `{e}`")
+        if update.from_user.id != update.message.reply_to_message.from_user.id:
+            return await update.answer("This is not for you! ✋", show_alert=True)
+    except: pass
 
+    await update.message.edit("<b>🚀 Re-searching with IMDb data...</b>")
+    movie_id = update.data.split("_")[-1]
+    query = await search_imdb(movie_id)
+    
+    channels = (await get_group(update.message.chat.id))["channels"]
+    results = ""
+    found_names = set()
 
-@Client.on_callback_query(filters.regex(r"^request"))
-async def request(bot, update):
-    clicked = update.from_user.id
-    try:      
-       typed = update.message.reply_to_message.from_user.id
-    except:
-       return await update.message.delete()       
-    if clicked != typed:
-       return await update.answer("That's not for you! 👀", show_alert=True)
+    async for msg in user_bot.search_messages(chat_id=channels[0], query=query): # Example for first channel
+        text = msg.text or msg.caption
+        if not text: continue
+        name = text.split("\n")[0]
+        if name not in found_names:
+            found_names.add(name)
+            results += f"<b>🎬 {name}</b>\n🔗 {msg.link}\n\n"
 
-    admin = (await get_group(update.message.chat.id))["user_id"]
-    id    = update.data.split("_")[1]
-    name  = await search_imdb(id)
-    url   = "https://www.imdb.com/title/tt"+id
-    text  = f"#RequestFromYourGroup\n\nName: {name}\nIMDb: {url}"
-    await bot.send_message(chat_id=admin, text=text, disable_web_page_preview=True)
-    await update.answer("✅ Request Sent To Admin", show_alert=True)
-    await update.message.delete(60)
+    if not results:
+        return await update.message.edit("<b>🔺 Still nothing found! Requesting to Admin...</b>", 
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🎯 Request Admin", callback_data=f"request_{movie_id}")]]))
+    
+    await update.message.delete()
+    sent_msg = await bot.send_message(update.message.chat.id, f"<b>✅ Found results for '{query}':</b>\n\n{results}")
+    asyncio.create_task(delete_after_delay(sent_msg, 300))
+        
