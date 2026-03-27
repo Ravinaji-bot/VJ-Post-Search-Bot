@@ -1,6 +1,16 @@
+# Updated utils/__init__.py
 # Don't Remove Credit Tg - @VJ_Botz
-# Subscribe YouTube Channel For Amazing Bot https://youtube.com/@Tech_VJ
-# Ask Doubt on telegram @KingVJ01
 
-from .script import *
-from .helpers import *
+from .helpers import (
+    add_user, 
+    get_users, 
+    delete_user, 
+    add_channel, 
+    get_group, 
+    remove_group, 
+    get_groups
+)
+from .script import script
+
+# Ye file saare helpers aur scripts ko ek saath connect karti hai
+# Taki aap plugins mein 'from utils import *' use kar sakein.
